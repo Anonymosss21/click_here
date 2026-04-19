@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>A Calling Card</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Dancing+Script:wght@700&family=Montserrat:wght@300;400;600&display=swap');
+
+        :root {
+            --sky-top: #0a0e29;
+            --sky-mid: #151b40;
+            --sky-bot: #232a5e;
+            --env-back: #e2e8f0; 
+            --env-flap: #cbd5e1; 
+            --env-front-left: #f8fafc; 
+            --env-front-right: #ffffff;
+            --seal-color: #e11d48; 
+            --letter-bg: #fdfbf7; 
+            --text-main: #1e293b;
+            --text-light: #64748b;
+            --font-title: 'Cinzel', serif;
+            --font-body: 'Montserrat', sans-serif;
+            --font-sig: 'Dancing Script', cursive; 
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body, html {
+            height: 100%;
+            background-color: var(--sky-top);
+            font-family: var(--font-body);
+            color: var(--text-main);
+            overflow: hidden; 
+            user-select: none; 
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        .night-sky {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(to bottom, var(--sky-top), var(--sky-mid), var(--sky-bot));
+            z-index: 0; pointer-events: none;
+        }
+
+        .moon {
+            position: absolute; top: 10%; right: 15%;
+            width: 120px; height: 120px; background: #ffffff;
+            border-radius: 50%; box-shadow: 0 0 40px #ffffff, 0 0 80px rgba(255,255,255,0.4);
+        }
+
+        .cityscape {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 30vh;
+            background: 
+                linear-gradient(to right, 
+                    #0f172a 0%, #0f172a 15%, transparent 15%, transparent 20%, 
+                    #0b0f1e 20%, #0b0f1e 40%, transparent 40%, transparent 45%,
+                    #131c36 45%, #131c36 70%, transparent 70%, transparent 75%,
+                    #0a0e29 75%, #0a0e29 100%);
+            background-size: 100% 100%; z-index: 1; opacity: 0.8;
+            background-image: radial-gradient(circle at 10% 50%, rgba(255,255,255,0.2) 2px, transparent 3px),
+                              radial-gradient(circle at 30% 30%, rgba(255,255,255,0.2) 2px, transparent 3px),
+                              radial-gradient(circle at 60% 60%, rgba(255,255,255,0.2) 2px, transparent 3px),
+                              radial-gradient(circle at 85% 40%, rgba(255,255,255,0.2) 2px, transparent 3px);
+        }
+
+        .glider-container {
+            position: absolute; top: -200px; right: -200px; 
+            z-index: 20; pointer-events: none; opacity: 0;
+            transform: scale(0.5); filter: drop-shadow(0 10px 15px rgba(0,0,0,0.5));
+        }
+
+        .glider-svg { width: 180px; height: 180px; fill: #ffffff; }
+
+        .scene {
+            position: relative; width: 100vw; height: 100vh;
+            perspective: 1200px; display: flex; justify-content: center; align-items: center;
+            z-index: 5;
+        }
+
+        .instruction {
+            position: absolute; bottom: 20%; left: 50%; transform: translateX(-50%);
+            color: #ffffff; font-family: var(--font-title);
+            font-size: 0.9rem; letter-spacing: 3px;
+            transition: opacity 0.4s ease; z-index: 2; pointer-events: none; 
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5); text-transform: uppercase;
+        }
+
+        .env-part {
+            position: absolute; top: 50%; left: 50%;
+            transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.8s ease; cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .envelope-back {
+            width: 320px; height: 220px; background-color: var(--env-back);
+            transform: translate(-50%, -50%); border-radius: 4px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4); z-index: 1;
+        }
+
+        .envelope-front {
+            width: 0; height: 0; transform: translate(-50%, -50%);
+            border-left: 160px solid var(--env-front-left); border-right: 160px solid var(--env-front-right);
+            border-bottom: 110px solid var(--env-back); border-top: 110px solid transparent; z-index: 3;
+        }
+
+        .envelope-flap {
+            width: 0; height: 0; transform: translate(-50%, -110px); transform-origin: top center;
+            border-left: 160px solid transparent; border-right: 160px solid transparent;
+            border-top: 120px solid var(--env-flap); border-bottom: 0 solid transparent;
+            z-index: 5; transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .seal {
+            width: 50px; height: 50px; background-color: var(--seal-color);
+            border-radius: 50%; color: #ffffff;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 24px; font-family: var(--font-title);
+            transform: translate(-50%, -50%); z-index: 6; 
+            border: 2px solid #ffffff; box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+            transition: opacity 0.4s ease;
+        }
+
+        .letter {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); width: 300px; height: 200px;
+            background-color: var(--letter-bg); border-radius: 4px; padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1); z-index: 2; overflow: hidden;
+            transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1), 
+                        width 0.8s cubic-bezier(0.25, 1, 0.5, 1), 
+                        height 0.8s cubic-bezier(0.25, 1, 0.5, 1),
+                        padding 0.8s ease, border-radius 0.8s ease, box-shadow 0.8s ease;
+            display: flex; flex-direction: column; border: 1px solid #e2e8f0;
+        }
+
+        .letter::-webkit-scrollbar { width: 4px; }
+        .letter::-webkit-scrollbar-track { background: transparent; }
+        .letter::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
+
+        /* BUG FIX: Removed tricky flex heights. Now acts as a standard block wrapper */
+        .letter-content { 
+            opacity: 0; 
+            transition: opacity 0.6s ease; 
+            position: relative; 
+            z-index: 2; 
+            border: 1px solid rgba(225, 29, 72, 0.4);
+            padding: 28px;
+        }
+
+        .letter-content::before {
+            content: 'K';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 15rem;
+            color: rgba(225, 29, 72, 0.04); 
+            font-family: var(--font-title);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .close-btn {
+            position: absolute; top: 8px; right: 15px;
+            background: none; border: none; font-size: 26px; color: var(--text-light);
+            cursor: pointer; opacity: 0; pointer-events: none; 
+            transition: color 0.3s, opacity 0.3s;
+            z-index: 10;
+        }
+        .close-btn:hover { color: var(--seal-color); }
+
+        .greeting { 
+            font-family: var(--font-title); font-size: 1.5rem; 
+            margin-bottom: 20px; color: #0f172a; padding-right: 30px;
+            border-bottom: 1px solid rgba(225, 29, 72, 0.3); padding-bottom: 10px;
+            text-transform: uppercase; letter-spacing: 2px;
+        }
+        
+        .body-text { 
+            line-height: 1.8; font-size: 0.95rem; 
+            color: var(--text-main); font-weight: 400;
+        }
+
+        .body-text::first-letter {
+            font-family: var(--font-title);
+            color: var(--seal-color);
+            float: left;
+            font-size: 3.5rem;
+            line-height: 0.8;
+            margin-right: 8px;
+            margin-top: 4px;
+        }
+
+        .signature {
+            margin-top: 15px;
+            text-align: right;
+            font-size: 0.9rem;
+            color: var(--text-light);
+            font-family: var(--font-title);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .signature-name {
+            font-family: var(--font-sig);
+            font-size: 2.2rem;
+            color: var(--seal-color);
+            margin-top: 5px;
+            display: block;
+            text-transform: none;
+            letter-spacing: 0;
+            transform: rotate(-3deg); 
+        }
+
+        /* BUG FIX: Added specific margin-top so it just flows naturally downwards inside the border */
+        .reviews-container {
+            display: flex; flex-direction: row; gap: 15px; width: 100%;
+            margin-top: 40px; padding-top: 25px; 
+            border-top: 1px solid rgba(225, 29, 72, 0.1);
+        }
+
+        .photo-card {
+            background: #ffffff; padding: 6px 6px 10px 6px; 
+            border-radius: 2px; box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            border: 1px solid #e2e8f0; display: flex; flex-direction: column; align-items: center;
+            flex: 1; min-width: 0; 
+        }
+
+        .photo-card img {
+            width: 100%; 
+            height: 180px; 
+            border-radius: 2px; 
+            object-fit: contain; 
+            background-color: #f8fafc; 
+            border: 1px solid #e2e8f0;
+            pointer-events: none; 
+        }
+
+        .card-caption {
+            font-family: var(--font-body); font-size: 0.7rem; color: var(--text-light); 
+            margin-top: 8px; letter-spacing: 1px; text-transform: uppercase; font-weight: 600;
+        }
+
+        .swoop-anim { animation: glideAndDrop 2s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+
+        @keyframes glideAndDrop {
+            0% { top: -200px; right: -200px; opacity: 0; transform: scale(0.5) rotate(-15deg); }
+            20% { opacity: 1; }
+            50% { top: 40%; right: 45%; transform: scale(1.2) rotate(0deg); opacity: 1; } 
+            80% { opacity: 1; }
+            100% { top: 120vh; right: 120vw; opacity: 0; transform: scale(0.8) rotate(15deg); }
+        }
+
+        .step-1 .envelope-flap { transform: translate(-50%, -110px) rotateX(180deg); z-index: 1; }
+        .step-1 .seal { opacity: 0; }
+        .step-1 .instruction { opacity: 0; }
+        .step-2 .letter { transform: translate(-50%, -250px); z-index: 10; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+        
+        .step-3 .envelope-back, .step-3 .envelope-front,
+        .step-3 .envelope-flap, .step-3 .seal {
+            transform: translate(-50%, 150vh); opacity: 0; pointer-events: none;
+        }
+
+        .step-3 .letter {
+            transform: translate(-50%, -50%); width: 92vw; max-width: 650px; 
+            height: 85vh; max-height: 800px; padding: 12px; border-radius: 8px; 
+            overflow-y: auto; overflow-x: hidden;
+        }
+
+        .step-3 .letter-content { opacity: 1; transition-delay: 0.6s; }
+        .step-3 .close-btn { opacity: 1; pointer-events: auto; transition-delay: 0.8s; }
+
+        @media (max-width: 450px) {
+            .step-3 .letter { padding: 10px; width: 95vw; height: 90vh; }
+            .letter-content { padding: 20px 15px; } 
+            .greeting { font-size: 1.2rem; }
+            .body-text { font-size: 0.85rem; }
+            .photo-card img { height: 140px; } 
+            .moon { width: 80px; height: 80px; }
+            .letter-content::before { font-size: 10rem; } 
+        }
+    </style>
+</head>
+<body oncontextmenu="return false;" ondragstart="return false;" ondrop="return false;">
+
+    <div class="night-sky">
+        <div class="moon"></div>
+        <div class="cityscape"></div>
+    </div>
+
+    <div class="glider-container" id="glider">
+        <svg viewBox="0 0 200 150" class="glider-svg">
+            <path d="M100 20 L190 70 C150 90 120 120 100 140 C80 120 50 90 10 70 Z" fill="#ffffff" />
+            <path d="M100 20 L190 70 C150 75 120 80 100 90 C80 80 50 75 10 70 Z" fill="#e2e8f0" />
+            <ellipse cx="100" cy="85" rx="8" ry="20" fill="#0f172a" />
+        </svg>
+    </div>
+
+    <div class="scene" id="scene">
+        <div class="instruction" id="instruction">Tap the envelope</div>
+
+        <div class="env-part envelope-back" onclick="startHeist()"></div>
+        <div class="env-part envelope-front" onclick="startHeist()"></div>
+        <div class="env-part envelope-flap" onclick="startHeist()"></div>
+        <div class="env-part seal" onclick="startHeist()">K</div> 
+        
+        <div class="letter" id="letter">
+            <div class="letter-content">
+                <button class="close-btn" onclick="closeLetter(event)">✕</button>
+
+                <div class="greeting">To Teng Jia Yi,</div>
+                
+                <div class="body-text">
+                    I’ve been thinking about what happened and I really feel bad. There’s no excuse for what I said—I totally messed up and I’m sorry for being so disrespectful. I really value our friendship and I hate that I made things awkward.
+                    <br><br>
+                    I’ve settled the Google Review for your friend like you asked. I didn’t just want to tick a box, so I tried to write something actually helpful that would support their business.
+                    <br><br>
+                    I’ve attached the evidence of the reviews below. I really hope we can move past this. I’ll be here whenever you’re ready to talk.
+                    
+                    <div class="signature">
+                        Sincerely,<br>
+                        <span class="signature-name">Your Name</span>
+                    </div>
+                </div>
+
+                <div class="reviews-container">
+                    <div class="photo-card">
+                        <img src="review1.png" alt="First Google Review">
+                        <div class="card-caption">Review 1</div>
+                    </div>
+                    <div class="photo-card">
+                        <img src="review2.png" alt="Second Google Review">
+                        <div class="card-caption">Review 2</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('keydown', function(e) {
+            if(e.key === 'F12' || e.keyCode === 123) { e.preventDefault(); return false; }
+            if(e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c')) { e.preventDefault(); return false; }
+            if(e.metaKey && e.altKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c')) { e.preventDefault(); return false; }
+            if((e.ctrlKey || (e.metaKey && e.altKey)) && (e.key === 'U' || e.key === 'u')) { e.preventDefault(); return false; }
+            if((e.ctrlKey || e.metaKey) && (e.key === 'S' || e.key === 's')) { e.preventDefault(); return false; }
+            if((e.ctrlKey || e.metaKey) && (e.key === 'P' || e.key === 'p')) { e.preventDefault(); return false; }
+        });
+
+        const scene = document.getElementById('scene');
+        const glider = document.getElementById('glider');
+        let isAnimating = false;
+        let isOpen = false;
+
+        function startHeist() {
+            if (isAnimating || isOpen) return;
+            isAnimating = true;
+
+            glider.classList.add('swoop-anim');
+
+            setTimeout(() => { scene.classList.add('step-1'); }, 800); 
+            setTimeout(() => { scene.classList.add('step-2'); }, 1400); 
+            
+            setTimeout(() => {
+                scene.classList.add('step-3');
+                isAnimating = false;
+                isOpen = true;
+                setTimeout(() => { glider.classList.remove('swoop-anim'); }, 1000);
+            }, 2200); 
+        }
+
+        function closeLetter(event) {
+            event.stopPropagation(); 
+            if (isAnimating || !isOpen) return;
+            isAnimating = true;
+
+            scene.classList.remove('step-3');
+            setTimeout(() => { scene.classList.remove('step-2'); }, 800); 
+            setTimeout(() => {
+                scene.classList.remove('step-1');
+                isAnimating = false;
+                isOpen = false;
+                document.getElementById('instruction').style.opacity = '1';
+            }, 1600); 
+        }
+    </script>
+</body>
+</html>
