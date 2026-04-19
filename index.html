@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>A Calling Card</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Dancing+Script:wght@700&family=Montserrat:wght@300;400;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Dancing+Script:wght@700&family=Montserrat:wght@300;400;600&family=Noto+Serif+TC:wght@400;600&display=swap');
 
         :root {
             --sky-top: #0a0e29;
@@ -36,6 +36,30 @@
             -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
+        }
+
+        /* NEW: Translate Button Styling */
+        .lang-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #ffffff;
+            font-family: var(--font-body);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            z-index: 100;
+            backdrop-filter: blur(4px);
+            transition: all 0.3s ease;
+            letter-spacing: 1px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+
+        .lang-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
         }
 
         .night-sky {
@@ -138,7 +162,6 @@
         .letter::-webkit-scrollbar-track { background: transparent; }
         .letter::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
 
-        /* BUG FIX: Removed tricky flex heights. Now acts as a standard block wrapper */
         .letter-content { 
             opacity: 0; 
             transition: opacity 0.6s ease; 
@@ -212,7 +235,6 @@
             transform: rotate(-3deg); 
         }
 
-        /* BUG FIX: Added specific margin-top so it just flows naturally downwards inside the border */
         .reviews-container {
             display: flex; flex-direction: row; gap: 15px; width: 100%;
             margin-top: 40px; padding-top: 25px; 
@@ -283,6 +305,8 @@
 </head>
 <body oncontextmenu="return false;" ondragstart="return false;" ondrop="return false;">
 
+    <button id="lang-btn" class="lang-btn" onclick="toggleLanguage()">繁體中文</button>
+
     <div class="night-sky">
         <div class="moon"></div>
         <div class="cityscape"></div>
@@ -308,29 +332,29 @@
             <div class="letter-content">
                 <button class="close-btn" onclick="closeLetter(event)">✕</button>
 
-                <div class="greeting">To Teng Jia Yi,</div>
+                <div class="greeting" id="greeting">To Teng Jia Yi,</div>
                 
                 <div class="body-text">
-                    I’ve been thinking about what happened and I really feel bad. There’s no excuse for what I said—I totally messed up and I’m sorry for being so disrespectful. I really value our friendship and I hate that I made things awkward.
+                    <span id="p1">I’ve been thinking about what happened and I really feel bad. There’s no excuse for what I said—I totally messed up and I’m sorry for being so disrespectful. I really value our friendship and I hate that I made things awkward.</span>
                     <br><br>
-                    I’ve settled the Google Review for your friend like you asked. I didn’t just want to tick a box, so I tried to write something actually helpful that would support their business.
+                    <span id="p2">I’ve settled the Google Review for your friend like you asked. I didn’t just want to tick a box, so I tried to write something actually helpful that would support their business.</span>
                     <br><br>
-                    I’ve attached the evidence of the reviews below. I really hope we can move past this. I’ll be here whenever you’re ready to talk.
+                    <span id="p3">I’ve attached the evidence of the reviews below. I really hope we can move past this. I’ll be here whenever you’re ready to talk.</span>
                     
                     <div class="signature">
-                        Sincerely,<br>
-                        <span class="signature-name">Amos</span>
+                        <span id="sinc">Sincerely,</span><br>
+                        <span class="signature-name" id="sig-name">Amos</span>
                     </div>
                 </div>
 
                 <div class="reviews-container">
                     <div class="photo-card">
                         <img src="review1.png" alt="First Google Review">
-                        <div class="card-caption">Review 1</div>
+                        <div class="card-caption" id="rev1">Review 1</div>
                     </div>
                     <div class="photo-card">
                         <img src="review2.png" alt="Second Google Review">
-                        <div class="card-caption">Review 2</div>
+                        <div class="card-caption" id="rev2">Review 2</div>
                     </div>
                 </div>
 
@@ -339,6 +363,7 @@
     </div>
 
     <script>
+        // --- PREVENT RIGHT CLICK AND INSPECT (Your existing code) ---
         document.addEventListener('keydown', function(e) {
             if(e.key === 'F12' || e.keyCode === 123) { e.preventDefault(); return false; }
             if(e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c')) { e.preventDefault(); return false; }
@@ -348,6 +373,7 @@
             if((e.ctrlKey || e.metaKey) && (e.key === 'P' || e.key === 'p')) { e.preventDefault(); return false; }
         });
 
+        // --- ANIMATION LOGIC (Your existing code) ---
         const scene = document.getElementById('scene');
         const glider = document.getElementById('glider');
         let isAnimating = false;
@@ -383,6 +409,61 @@
                 isOpen = false;
                 document.getElementById('instruction').style.opacity = '1';
             }, 1600); 
+        }
+
+        // --- NEW: TRANSLATION LOGIC ---
+        const translations = {
+            en: {
+                btnText: "繁體中文",
+                instruction: "Tap the envelope",
+                greeting: "To Teng Jia Yi,",
+                p1: "I’ve been thinking about what happened and I really feel bad. There’s no excuse for what I said—I totally messed up and I’m sorry for being so disrespectful. I really value our friendship and I hate that I made things awkward.",
+                p2: "I’ve settled the Google Review for your friend like you asked. I didn’t just want to tick a box, so I tried to write something actually helpful that would support their business.",
+                p3: "I’ve attached the evidence of the reviews below. I really hope we can move past this. I’ll be here whenever you’re ready to talk.",
+                sinc: "Sincerely,",
+                sigName: "Your Name",  /* REPLACE WITH YOUR ENGLISH NAME */
+                rev1: "Review 1",
+                rev2: "Review 2"
+            },
+            zh: {
+                btnText: "ENGLISH",
+                instruction: "點擊信封",
+                greeting: "致 Teng Jia Yi，",
+                p1: "我一直在回想發生的事情，我真的感到很抱歉。我所說的話沒有任何藉口——我完全搞砸了，對於我的無禮，我深感歉意。我非常珍惜我們的友誼，我也很討厭把事情弄得這麼尷尬。",
+                p2: "我已經按照你的要求為你朋友完成了 Google 評論。我不想只是敷衍了事，所以我盡力寫了一些真正有幫助的內容，希望能支持他們的生意。",
+                p3: "我在下面附上了評論的截圖證明。我真心希望我們能度過這個不愉快。當你準備好想談談時，我會隨時在這裡等你。",
+                sinc: "真誠的，",
+                sigName: "你的名字", /* REPLACE WITH YOUR CHINESE NAME */
+                rev1: "評論 1",
+                rev2: "評論 2"
+            }
+        };
+
+        let currentLang = 'en';
+
+        function toggleLanguage() {
+            // Swap the language state
+            currentLang = currentLang === 'en' ? 'zh' : 'en';
+            const textData = translations[currentLang];
+
+            // Change the font style slightly for Chinese readability
+            if(currentLang === 'zh') {
+                document.querySelector('.body-text').style.fontFamily = "'Noto Serif TC', serif";
+            } else {
+                document.querySelector('.body-text').style.fontFamily = "var(--font-body)";
+            }
+
+            // Update all the text on the screen
+            document.getElementById('lang-btn').innerText = textData.btnText;
+            document.getElementById('instruction').innerText = textData.instruction;
+            document.getElementById('greeting').innerText = textData.greeting;
+            document.getElementById('p1').innerText = textData.p1;
+            document.getElementById('p2').innerText = textData.p2;
+            document.getElementById('p3').innerText = textData.p3;
+            document.getElementById('sinc').innerText = textData.sinc;
+            document.getElementById('sig-name').innerText = textData.sigName;
+            document.getElementById('rev1').innerText = textData.rev1;
+            document.getElementById('rev2').innerText = textData.rev2;
         }
     </script>
 </body>
